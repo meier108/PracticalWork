@@ -42,23 +42,20 @@ class SMW:
                     mutants.append(mutated)
         return mutants
     
-    def walk(self, start_sequence, n_steps, fitness_function):
+    def walk(self, start_sequence, n_steps):
         current_seq = start_sequence
-        current_fitness = 0 #test just use fitness of 0 for first one 
-
-        history = [(current_seq, current_fitness)]
-
+        #current_fitness = 0 #test just use fitness of 0 for first one 
+        history = []
         for step in range(n_steps):
             mutant = self.mutate_sequence(current_seq, None)
-            mutant_one_hot = self.one_hot_encode(mutant)
-            mutant_fitness = fitness_function(mutant_one_hot)
+            #mutant_one_hot = self.one_hot_encode(mutant)
+            #mutant_fitness = fitness_function(mutant_one_hot)
 
             # Check if mutant is better than current
             # Yes: move to mutant
-            if mutant_fitness > current_fitness:
-                current_seq = mutant
-                current_fitness = mutant_fitness
+            #if mutant_fitness > current_fitness:
+            #    current_seq = mutant
+            #    current_fitness = mutant_fitness
 
-            history.append((current_seq, current_fitness))
-
+            history.append(mutant)
         return history
