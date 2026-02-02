@@ -6,7 +6,7 @@ import pickle
 import os
 import copy
 from sklearn.decomposition import PCA
-from create_split import create_split
+#from create_split import create_split
 
 
 def encode_sequences(sequences):
@@ -373,7 +373,7 @@ if __name__ == "__main__":
     # Example usage: load data, create splits, then visualize
     data_path = '../tf_bind_8-SIX6_REF_R1/dataset.csv'
     df = pd.read_csv(data_path)
-    df_split = create_split(df, k_seeds=20, n_training_seeds=5, random_state=42)
-    df_split, projection = visualize_fitness_landscape(df_split,
-                                                       projection_method='umap',
-                                                       )
+    #df_split = create_split(df, k_seeds=20, n_training_seeds=5, random_state=42)
+    #df_split, projection = visualize_fitness_landscape(df_split,
+    #                                                   projection_method='umap',
+    #                                                   )
