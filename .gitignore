@@ -2,3 +2,4 @@
 split/assets/
 __pycache__/
 *.pyc
+./gfp_data/
