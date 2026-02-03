@@ -3,3 +3,4 @@ split/assets/
 __pycache__/
 *.pyc
 ./gfp_data/
+/GB1_data/
