@@ -27,12 +27,13 @@ class SMW:
             sequence: List of nucleotide indices.
 
         Returns:
-            Flattened one-hot encoded sequence of shape (1, seq_len * 4).
+            Flattened one-hot encoded sequence of shape (1, seq_len * n).
         """
-        sequence_tensor = tf.one_hot(sequence, depth=4)
+        sequence_tensor = tf.one_hot(sequence, depth=self.n)
         sequence_numpy = sequence_tensor.numpy()
-        shape = sequence_numpy.shape[0] * sequence_numpy.shape[1]
-        sequence_n_flat = sequence_numpy.reshape(1, shape)
+        sequence_n_flat = sequence_numpy.flatten()
+        #shape = sequence_numpy.shape[0] * sequence_numpy.shape[1]
+        #sequence_n_flat = sequence_numpy.reshape(1, shape)
         return sequence_n_flat
 
     def mutate_sequence(self, sequence: List[int], pos: Optional[int] = None) -> List[int]:

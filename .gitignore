@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 ./gfp_data/
 /GB1_data/
+lstm_scorer_GB1.pt
+lstm_model_TFBind.pt
