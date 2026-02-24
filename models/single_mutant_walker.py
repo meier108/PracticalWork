@@ -58,20 +58,38 @@ class SMW:
         return sequence
 
     def mutate(self, start_sequence: List[int], n_steps: int) -> List[np.ndarray]:
-        """Generate a sequence of mutations starting from a seed sequence.
+        """Generate independent single-point mutations from a seed sequence.
 
         Args:
             start_sequence: Initial sequence to start from.
-            n_steps: Number of mutation steps to perform.
+            n_steps: Number of independent mutations to generate.
 
         Returns:
-            List of one-hot encoded mutated sequences.
+            List of one-hot encoded mutated sequences (each differs by 1 position from seed).
         """
-        current_seq = start_sequence
         history = []
-        for step in range(n_steps):
-            mutant = self.mutate_sequence(current_seq, None)
+        for _ in range(n_steps):
+            # Each mutation is independent from the seed, not cumulative
+            mutant = self.mutate_sequence(start_sequence, None)
             mutant_one_hot = self.one_hot_encode(mutant)
-            current_seq = mutant
             history.append(mutant_one_hot)
+        return history
+    
+    def mutate_all_positions(self, start_sequence: List[int]) -> List[np.ndarray]:
+        """Generate ALL possible single-point mutations (exhaustive neighborhood).
+
+        Args:
+            start_sequence: Initial sequence to mutate.
+
+        Returns:
+            List of all possible single-mutant one-hot encoded sequences.
+        """
+        history = []
+        for pos in range(len(start_sequence)):
+            current_aa = start_sequence[pos]
+            for new_aa in self.nucleotides:
+                if new_aa != current_aa:
+                    mutant = list(start_sequence)
+                    mutant[pos] = new_aa
+                    history.append(self.one_hot_encode(mutant))
         return history

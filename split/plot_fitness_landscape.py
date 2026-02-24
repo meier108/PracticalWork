@@ -64,7 +64,7 @@ def compute_2d_projection(encoded_sequences, method='pca', random_state=42, cach
 
     elif method == 'umap':
         import umap
-        reducer = umap.UMAP(n_components=2, random_state=random_state, n_neighbors=5, min_dist=0.3) # n_neighbors=15, min_dist=0.1)
+        reducer = umap.UMAP(n_components=2, random_state=random_state, n_neighbors=15, min_dist=0.3, init='random') # n_neighbors=15, min_dist=0.1)
         projection = reducer.fit_transform(encoded_sequences)
 
     else:
