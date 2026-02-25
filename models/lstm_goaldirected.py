@@ -25,6 +25,10 @@ class LSTMGoalDirected(nn.Module):
     
     def save_model(self, path):
         torch.save(self.state_dict(), path)
+
+    def load_model(self, path):
+        self.load_state_dict(torch.load(path))
+        
     
     @torch.no_grad()
     def generate(self, goal_score, device = 'cpu', temp = 1.0):
