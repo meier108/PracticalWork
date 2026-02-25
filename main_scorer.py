@@ -219,10 +219,10 @@ def plot_results(df_values):
     spearman_corr, _ = spearmanr(df_values['predicted_score'], df_values['real_score'])
     print(f"Spearman Correlation: {spearman_corr:.4f}")
 
-    plt.plot(pred_norm, label='Predicted (normalized)', marker='o', markersize=4, alpha=0.7)
-    plt.plot(real_norm, label='Real (normalized)', marker='s', markersize=4, alpha=0.7)
+    plt.plot(pred_norm, label='Predicted', marker='o', markersize=4, alpha=0.7)
+    plt.plot(real_norm, label='Real', marker='s', markersize=4, alpha=0.7)
     plt.xlabel('Optimization Step')
-    plt.ylabel('Score (normalized)')
+    plt.ylabel('Score')
     plt.title('Are Predicted and Real Scores Growing Together?')
     plt.legend()
     plt.grid(True, alpha=0.3)

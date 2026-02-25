@@ -7,6 +7,7 @@ class LSTMGoalDirected(nn.Module):
         super().__init__()
         self.seq_len = seq_len
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.vocab_size = vocab_size
 
         # LSTM input = Embedding + Goal Score
         self.lstm = nn.LSTM(embedding_dim + goal_score, hidden_dim, batch_first = True)
