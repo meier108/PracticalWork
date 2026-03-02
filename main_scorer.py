@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-from models.oracle import oracle_lookup, oracle_exists
+from models.oracle import oracle_lookup_one_hot, oracle_exists_one_hot
 
 def check_already_scored(mutation, scored_sequences):
     """
@@ -131,10 +131,10 @@ def mutate_score_sequences(mutation_model, scorer, oracle, seed_sequence, score_
 
     for step in range(steps):
         mutated_sequences = mutation_model.mutate(seed_sequence, num_mutations)
-
+        
         for idx, mutation in enumerate(mutated_sequences):
             already_scored = check_already_scored(mutation, scored_sequences)
-            if not already_scored and  oracle_exists(oracle, mutation):
+            if not already_scored and  oracle_exists_one_hot(oracle, mutation):
                 score = scorer.predict(mutation)
                 if score > old_score:
                     # Update seed sequence and score if the new score is better
@@ -146,8 +146,10 @@ def mutate_score_sequences(mutation_model, scorer, oracle, seed_sequence, score_
                     print(f"Step {step+1}, Mutation {idx+1}: New score {score:.4f} (improved from {old_score:.4f})")
                 else:
                     continue
+                    #print(f"Step {step+1}, Mutation {idx+1}: Score {score:.4f} did not improve from {old_score:.4f}, skipping.")
             else:
                 continue
+                #print(f"Step {step+1}, Mutation {idx+1}: Already scored or not in oracle, skipping.")
                 
     return values
 
@@ -161,7 +163,7 @@ def lookup_oracle(df_values, oracle):
     Returns:
         dataframe with mutations, predicted scores, true scores and error
         """
-    df_values['real_score'] = df_values['mutation'].apply(lambda x: oracle_lookup(oracle, x))
+    df_values['real_score'] = df_values['mutation'].apply(lambda x: oracle_lookup_one_hot(oracle, x))
     df_values['error'] = df_values['real_score'] - df_values['predicted_score']
     return df_values
 
@@ -298,3 +300,109 @@ def plot_umap_embedding(df, testset : str, values : pd.DataFrame, SEED=42, vocab
     ax.legend(loc='upper right')
     plt.tight_layout()
     plt.show()
+
+
+
+def plot_umap_multi_trajectories(df_oracle, df_all_walks, SEED=42, title="Multi-Run Trajectories on Fitness Landscape"):
+    """
+    Plot multiple optimization trajectories on a shared UMAP embedding.
+    
+    Args:
+        df_oracle: DataFrame with oracle data (must have 'one_hot_seq' and 'binding_scores')
+        df_all_walks: DataFrame from run_multiple_walks with columns [run_id, step, predicted_score, real_score, mutation]
+        SEED: Random seed for reproducibility
+        title: Plot title
+    """
+    import matplotlib.cm as cm
+    
+    if df_all_walks.empty:
+        print("Warning: df_all_walks is empty. No trajectories to plot.")
+        return
+    
+    # Prepare oracle sequences for background landscape
+    X_oracle = np.vstack(df_oracle['one_hot_seq'].values)
+    oracle_scores = df_oracle['binding_scores'].values
+    
+    # Subsample oracle for faster UMAP
+    sample_size = min(5000, len(X_oracle))
+    np.random.seed(SEED)
+    sampled_indices = np.random.choice(len(X_oracle), size=sample_size, replace=False)
+    X_oracle_sampled = X_oracle[sampled_indices]
+    oracle_scores_sampled = oracle_scores[sampled_indices]
+    
+    # Get all trajectory sequences
+    X_trajectories = np.vstack(df_all_walks['mutation'].values)
+    
+    # Combine for consistent embedding
+    X_combined = np.vstack([X_oracle_sampled, X_trajectories])
+    
+    # Fit UMAP on combined data
+    reducer = umap.UMAP(n_components=2, random_state=SEED, n_neighbors=15, min_dist=0.1)
+    embedding = reducer.fit_transform(X_combined)
+    
+    # Split back
+    n_oracle = len(X_oracle_sampled)
+    embedding_oracle = embedding[:n_oracle]
+    embedding_trajectories = embedding[n_oracle:]
+    
+    # Map trajectory embeddings back to runs
+    df_all_walks = df_all_walks.copy()
+    df_all_walks['umap_x'] = embedding_trajectories[:, 0]
+    df_all_walks['umap_y'] = embedding_trajectories[:, 1]
+    
+    # Setup plot
+    fig, ax = plt.subplots(figsize=(14, 10))
+    
+    # Background landscape
+    scatter = ax.scatter(
+        embedding_oracle[:, 0], embedding_oracle[:, 1],
+        c=oracle_scores_sampled, cmap='viridis', alpha=0.2, s=10
+    )
+    plt.colorbar(scatter, label='Binding Score')
+    
+    # Get distinct colors for runs
+    run_ids = df_all_walks['run_id'].unique()
+    n_runs = len(run_ids)
+    colors = cm.tab10(np.linspace(0, 1, min(n_runs, 10)))
+    
+    # Plot each trajectory
+    for idx, run_id in enumerate(run_ids):
+        run_data = df_all_walks[df_all_walks['run_id'] == run_id].sort_values('step')
+        color = colors[idx % 10]
+        
+        # Draw arrows between consecutive points
+        for i in range(len(run_data) - 1):
+            ax.annotate(
+                '',
+                xy=(run_data.iloc[i+1]['umap_x'], run_data.iloc[i+1]['umap_y']),
+                xytext=(run_data.iloc[i]['umap_x'], run_data.iloc[i]['umap_y']),
+                arrowprops=dict(arrowstyle='->', color=color, lw=1.5, alpha=0.7)
+            )
+        
+        # Trajectory points
+        ax.scatter(
+            run_data['umap_x'], run_data['umap_y'],
+            c=[color], edgecolors='white', linewidths=0.5, s=60, zorder=5, alpha=0.8
+        )
+        
+        # Start marker
+        ax.scatter(
+            run_data.iloc[0]['umap_x'], run_data.iloc[0]['umap_y'],
+            c=[color], s=200, marker='o', edgecolors='black', linewidths=2,
+            label=f'Run {run_id} (start={run_data.iloc[0]["real_score"]:.3f})', zorder=10
+        )
+        
+        # End marker
+        ax.scatter(
+            run_data.iloc[-1]['umap_x'], run_data.iloc[-1]['umap_y'],
+            c=[color], s=200, marker='*', edgecolors='black', linewidths=2, zorder=10
+        )
+    
+    ax.set_xlabel('UMAP 1')
+    ax.set_ylabel('UMAP 2')
+    ax.set_title(title)
+    ax.legend(loc='upper right', fontsize=8)
+    plt.tight_layout()
+    plt.show()
+    
+    return fig, ax
