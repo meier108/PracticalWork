@@ -324,7 +324,7 @@ def plot_umap_multi_trajectories(df_oracle, df_all_walks, SEED=42, title="Multi-
     oracle_scores = df_oracle['binding_scores'].values
     
     # Subsample oracle for faster UMAP
-    sample_size = min(5000, len(X_oracle))
+    sample_size = min(10000, len(X_oracle))
     np.random.seed(SEED)
     sampled_indices = np.random.choice(len(X_oracle), size=sample_size, replace=False)
     X_oracle_sampled = X_oracle[sampled_indices]
@@ -401,7 +401,7 @@ def plot_umap_multi_trajectories(df_oracle, df_all_walks, SEED=42, title="Multi-
     ax.set_xlabel('UMAP 1')
     ax.set_ylabel('UMAP 2')
     ax.set_title(title)
-    ax.legend(loc='upper right', fontsize=8)
+    ax.legend(loc='upper left', fontsize=8)
     plt.tight_layout()
     plt.show()
     
