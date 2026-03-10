@@ -199,7 +199,7 @@ def plot_results_normalized(df_values):
     plt.tight_layout()
     plt.show()
 
-def plot_results(df_values):
+def plot_results(df_values, title="Predicted vs Real Scores"):
     """
     Plot the predicted scores vs. true scores.
     Calculate spearman correlation between predicted and true scores.
@@ -225,7 +225,7 @@ def plot_results(df_values):
     plt.plot(real_norm, label='Real', marker='s', markersize=4, alpha=0.7)
     plt.xlabel('Optimization Step')
     plt.ylabel('Score')
-    plt.title('Are Predicted and Real Scores Growing Together?')
+    plt.title(title)
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
@@ -239,23 +239,17 @@ def plot_umap_embedding(df, testset : str, values : pd.DataFrame, SEED=42, vocab
     test_sequences_indexed = np.array(test_df['encoded_sequence'].tolist())
     X_test_onehot = tf.one_hot(test_sequences_indexed, depth=vocab_size).numpy().reshape(len(test_sequences_indexed), -1)
     X_trajectory = np.vstack(values['mutation'].values)
-
-    # Subsample test sequences for faster UMAP
-    sample_size = min(10000, len(X_test_onehot))
-    np.random.seed(SEED)
-    sampled_indices = np.random.choice(len(X_test_onehot), size=sample_size, replace=False)
-    X_test_sampled = X_test_onehot[sampled_indices]
-    test_scores_sampled = test_df['binding_scores'].values[sampled_indices]
+    test_scores = test_df['binding_scores'].values
 
     # Combine for consistent embedding
-    X_combined = np.vstack([X_test_sampled, X_trajectory])
+    X_combined = np.vstack([X_test_onehot, X_trajectory])
 
     # Fit UMAP
     reducer = umap.UMAP(n_components=2, random_state=SEED, n_neighbors=15, min_dist=0.1)
     embedding = reducer.fit_transform(X_combined)
 
     # Split embeddings
-    n_test = len(X_test_sampled)
+    n_test = len(X_test_onehot)
     embedding_test = embedding[:n_test]
     embedding_trajectory = embedding[n_test:]
     trajectory_real_scores = values['predicted_score'].values
@@ -266,7 +260,7 @@ def plot_umap_embedding(df, testset : str, values : pd.DataFrame, SEED=42, vocab
     # Background landscape colored by binding scores
     scatter = ax.scatter(
         embedding_test[:, 0], embedding_test[:, 1],
-        c=test_scores_sampled, cmap='viridis', alpha=0.3, s=10
+        c=test_scores, cmap='viridis', alpha=0.3, s=10
     )
     plt.colorbar(scatter, label='Binding Score')
 
