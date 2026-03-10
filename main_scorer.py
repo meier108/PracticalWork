@@ -323,25 +323,19 @@ def plot_umap_multi_trajectories(df_oracle, df_all_walks, SEED=42, title="Multi-
     X_oracle = np.vstack(df_oracle['one_hot_seq'].values)
     oracle_scores = df_oracle['binding_scores'].values
     
-    # Subsample oracle for faster UMAP
-    sample_size = min(10000, len(X_oracle))
-    np.random.seed(SEED)
-    sampled_indices = np.random.choice(len(X_oracle), size=sample_size, replace=False)
-    X_oracle_sampled = X_oracle[sampled_indices]
-    oracle_scores_sampled = oracle_scores[sampled_indices]
     
     # Get all trajectory sequences
     X_trajectories = np.vstack(df_all_walks['mutation'].values)
     
     # Combine for consistent embedding
-    X_combined = np.vstack([X_oracle_sampled, X_trajectories])
+    X_combined = np.vstack([X_oracle, X_trajectories])
     
     # Fit UMAP on combined data
     reducer = umap.UMAP(n_components=2, random_state=SEED, n_neighbors=15, min_dist=0.1)
     embedding = reducer.fit_transform(X_combined)
     
     # Split back
-    n_oracle = len(X_oracle_sampled)
+    n_oracle = len(X_oracle)
     embedding_oracle = embedding[:n_oracle]
     embedding_trajectories = embedding[n_oracle:]
     
@@ -356,7 +350,7 @@ def plot_umap_multi_trajectories(df_oracle, df_all_walks, SEED=42, title="Multi-
     # Background landscape
     scatter = ax.scatter(
         embedding_oracle[:, 0], embedding_oracle[:, 1],
-        c=oracle_scores_sampled, cmap='viridis', alpha=0.2, s=10
+        c=oracle_scores, cmap='viridis', alpha=0.2, s=10
     )
     plt.colorbar(scatter, label='Binding Score')
     
@@ -388,14 +382,14 @@ def plot_umap_multi_trajectories(df_oracle, df_all_walks, SEED=42, title="Multi-
         # Start marker
         ax.scatter(
             run_data.iloc[0]['umap_x'], run_data.iloc[0]['umap_y'],
-            c=[color], s=200, marker='o', edgecolors='black', linewidths=2,
+            c=[color], s=100, marker='o', edgecolors='black', linewidths=2,
             label=f'Run {run_id} (start={run_data.iloc[0]["real_score"]:.3f})', zorder=10
         )
         
         # End marker
         ax.scatter(
             run_data.iloc[-1]['umap_x'], run_data.iloc[-1]['umap_y'],
-            c=[color], s=200, marker='*', edgecolors='black', linewidths=2, zorder=10
+            c=[color], s=100, marker='*', edgecolors='black', linewidths=2, zorder=10
         )
     
     ax.set_xlabel('UMAP 1')
