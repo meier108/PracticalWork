@@ -223,10 +223,10 @@ def plot_results(df_values, title="Predicted vs Real Scores"):
 
     plt.plot(pred_norm, label='Predicted', marker='o', markersize=4, alpha=0.7)
     plt.plot(real_norm, label='Real', marker='s', markersize=4, alpha=0.7)
-    plt.xlabel('Optimization Step')
-    plt.ylabel('Score')
-    plt.title(title)
-    plt.legend()
+    plt.xlabel('Optimization Step', fontsize=16)
+    plt.ylabel('Score', fontsize=16)
+    
+    plt.legend(fontsize=16)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
@@ -262,7 +262,10 @@ def plot_umap_embedding(df, testset : str, values : pd.DataFrame, SEED=42, vocab
         embedding_test[:, 0], embedding_test[:, 1],
         c=test_scores, cmap='viridis', alpha=0.3, s=10
     )
-    plt.colorbar(scatter, label='Binding Score')
+
+    cbar = plt.colorbar(scatter)          
+    cbar.set_label("Binding Score", fontsize=16)   # label text size
+    cbar.ax.tick_params(labelsize=14)              # tick numbers size
 
     # Draw arrows between consecutive trajectory points
     for i in range(len(embedding_trajectory) - 1):
@@ -290,8 +293,8 @@ def plot_umap_embedding(df, testset : str, values : pd.DataFrame, SEED=42, vocab
 
     ax.set_xlabel('UMAP 1')
     ax.set_ylabel('UMAP 2')
-    ax.set_title('Optimization Trajectory on GB1 Fitness Landscape - Testset: ' + testset)
-    ax.legend(loc='upper right')
+    #ax.set_title('Optimization Trajectory on GB1 Fitness Landscape - Testset: ' + testset)
+    ax.legend(loc='upper right', fontsize=16)
     plt.tight_layout()
     plt.show()
 
